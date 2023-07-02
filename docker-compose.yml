@@ -1,0 +1,96 @@
+version: '3.9'
+
+services:
+  svelte:
+    container_name: sveltekit
+    build: .
+    ports:
+      - '8080:8080'
+      - '24678:24678'
+    volumes:
+      - ./:/app
+    networks:
+      - svelte
+
+  mysql:
+    container_name: mysql
+    image: 'mysql/mysql-server:latest'
+    ports:
+      - '${FORWARD_DB_PORT:-3306}:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_DATABASE: '${DB_DATABASE}'
+      MYSQL_USER: '${DB_USERNAME}'
+      MYSQL_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+    volumes:
+      - 'mysql:/var/lib/mysql'
+    networks:
+      - svelte
+    healthcheck:
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - '-p${DB_PASSWORD}'
+      retries: 3
+      timeout: 5s
+
+  chroma:
+    container_name: chroma
+    image: ghcr.io/chroma-core/chroma:latest
+    volumes:
+      - index_data:/chroma/.chroma/index
+    environment:
+      - CHROMA_DB_IMPL=clickhouse
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=8123
+    ports:
+      - 8000:8000
+    depends_on:
+      - clickhouse
+    networks:
+      - svelte
+
+  clickhouse:
+    container_name: clickhouse
+    image: clickhouse/clickhouse-server:latest
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - CLICKHOUSE_TCP_PORT=9001
+      - CLICKHOUSE_HTTP_PORT=8123
+    ports:
+      - '8123:8123'
+      - '9001:9001'
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - clickhouse_logs:/var/log/clickhouse-server
+      - backups:/backups
+      - ${PWD}/config/backup_disk.xml:/etc/clickhouse-server/config.d/backup_disk.xml
+      - ${PWD}/config/chroma_users.xml:/etc/clickhouse-server/users.d/chroma.xml
+    networks:
+      - svelte
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - 6379:6379
+    networks:
+      - svelte
+
+networks:
+  svelte:
+    driver: bridge
+
+volumes:
+  mysql:
+    driver: local
+  clickhouse_data:
+    driver: local
+  clickhouse_logs:
+    driver: local
+  index_data:
+    driver: local
+  backups:
+    driver: local
