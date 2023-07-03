@@ -13,6 +13,9 @@ COPY --from=builder --chown=node:node /app/build ./build
 COPY --from=builder --chown=node:node /app/node_modules ./node_modules
 COPY --chown=node:node package.json .
 
+USER root
+RUN apt-get update && apt-get install -y openssl
+
 ENV PORT 8080
 EXPOSE 8080
 EXPOSE 24678
