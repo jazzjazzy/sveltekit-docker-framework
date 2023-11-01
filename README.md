@@ -40,9 +40,11 @@ and the commit your own repo
 git init
 git add .
 git commit -m "Initial commit"
+```
 
-# add your own repo on Github 
+add your own repo on Github 
 
+``` bash
 git remote add origin https://github.com/yourusername/yournewrepo.git
 git push -u origin master
 
@@ -60,9 +62,11 @@ you will need to start docker and the install the node packages
 
 ``` bash
 docker-compose up --build
+```
 
-#once the docker is running you can install the node packages
+once the docker is running you can install the node packages
 
+``` bash
 docker exec -it sveltekit npm install
 
 ```
@@ -73,9 +77,11 @@ they are both the same command, its just running npm run dev inside the docker c
 
 ``` bash
 docker exec -it sveltekit npm run dev 
+```
 
-#or 
+or 
 
+``` bash
 npm run docker-dev
 
 ```
@@ -86,9 +92,11 @@ To create a production version of your app:
 
 ```bash
 docker exec -it sveltekit npm run build 
+```
 
-#or 
+or 
 
+``` bash
 npm run docker-build
 ```
 
